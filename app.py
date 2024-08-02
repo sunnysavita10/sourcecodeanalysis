@@ -7,30 +7,26 @@ from flask import Flask, render_template, jsonify, request
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationSummaryMemory
 from langchain.chains import ConversationalRetrievalChain
-
-
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 app = Flask(__name__)
 
-
 load_dotenv()
-
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
-os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
-
 
 embeddings = load_embedding()
 persist_directory = "db"
+
 # Now we can load the persisted database from disk, and use it as normal.
-vectordb = Chroma(persist_directory=persist_directory,
-                  embedding_function=embeddings)
+vectordb = Chroma(persist_directory=persist_directory,embedding_function=embeddings)
 
 
 # retriever = vectordb.as_retriever(search_kwargs={"k": 2})
 # docs = retriever.get_relevant_documents("what is data ingestion function?")
 # print(docs)
 
-llm = ChatOpenAI()
+#llm = ChatOpenAI()
+
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-pro")
 memory = ConversationSummaryMemory(llm=llm, memory_key = "chat_history", return_messages=True)
 qa = ConversationalRetrievalChain.from_llm(llm, retriever=vectordb.as_retriever(search_type="mmr", search_kwargs={"k":8}), memory=memory)
 
